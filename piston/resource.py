@@ -211,8 +211,7 @@ class Resource(object):
 
         emitter, ct = Emitter.get(em_format)
         fields = handler.fields
-        if hasattr(handler, 'list_fields') and (
-                isinstance(result, list) or isinstance(result, QuerySet)):
+        if hasattr(handler, 'list_fields') and isinstance(result, (list, QuerySet)):
             fields = handler.list_fields
 
         status_code = 200
