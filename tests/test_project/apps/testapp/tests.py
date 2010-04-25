@@ -15,7 +15,9 @@ except ImportError:
 
 import urllib, base64
 
-from test_project.apps.testapp.models import TestModel, ExpressiveTestModel, Comment, InheritedModel, Issue58Model, ListFieldsModel
+from test_project.apps.testapp.models import TestModel, ExpressiveTestModel, \
+                        Comment, InheritedModel, Issue58Model, ListFieldsModel, \
+                        OverloadPlusMethod1, OverloadPlusMethod2
 from test_project.apps.testapp import signals
 
 class MainTests(TestCase):
@@ -458,4 +460,25 @@ class Issue58ModelTests(MainTests):
         resp = self.client.post('/api/issue58.json', outgoing, content_type='application/json',
                                 HTTP_AUTHORIZATION=self.auth_string)
         self.assertEquals(resp.status_code, 201)
-        
+
+class OverloadPlusMethodTest(MainTests):
+    def init_delegate(self):
+        item1 = OverloadPlusMethod2(title='Title2')
+        item1.save()
+        item2 = OverloadPlusMethod1(title='Title1')
+        item2.save()
+        item1.related_to.add(item2)
+
+    def test_1(self):
+        expected = """{
+    "a_name": [
+        {
+            "title": "Title1"
+        }
+    ], 
+    "id": 1, 
+    "title": "Title2"
+}"""
+        resp = self.client.get('/api/overload_plus_method/1')
+        self.assertEquals(resp.status_code, 200)
+        self.assertEquals(resp.content, expected)

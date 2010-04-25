@@ -80,6 +80,13 @@ class Emitter(object):
         ret = dict()
             
         for field in fields - Emitter.RESERVED_FIELDS:
+            # If fields are overloaded for a related model
+            # it will appears as a list or tuple
+            # but a method for this field could exists anymore
+            # so we extract the name of the field from the list/tuple to test it
+            if isinstance(field, (list, tuple)):
+                field, other_fields = field
+
             t = getattr(handler, str(field), None)
 
             if t and callable(t):
@@ -219,6 +226,9 @@ class Emitter(object):
                                     ret[model] = _any(inst(), fields)
                             else:
                                 ret[model] = _model(inst, fields)
+                        # Maybe there is a method for this field
+                        elif model in met_fields:
+                            ret[model] = _any(met_fields[model](data), fields)
 
                     elif maybe_field in met_fields:
                         # Overriding normal field which has a "resource method"

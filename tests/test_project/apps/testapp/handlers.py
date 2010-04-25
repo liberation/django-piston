@@ -3,7 +3,9 @@ from django.core.paginator import Paginator
 from piston.handler import BaseHandler
 from piston.utils import rc, validate
 
-from models import TestModel, ExpressiveTestModel, Comment, InheritedModel, PlainOldObject, Issue58Model, ListFieldsModel
+from models import TestModel, ExpressiveTestModel, Comment, InheritedModel, \
+                PlainOldObject, Issue58Model, ListFieldsModel, \
+                OverloadPlusMethod2
 from forms import EchoForm
 from test_project.apps.testapp import signals
 
@@ -95,3 +97,11 @@ class Issue58Handler(BaseHandler):
             return rc.CREATED
         else:
             super(Issue58Model, self).create(request)
+
+class OverloadPlusMethodHandler(BaseHandler):
+    model = OverloadPlusMethod2
+    fields = ('id','title',('a_name',('title',)))
+    
+    @classmethod
+    def a_name(cls, item):
+        return item.related_to.all()
