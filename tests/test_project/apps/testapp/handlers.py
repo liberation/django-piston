@@ -83,6 +83,21 @@ class ListFieldsHandler(BaseHandler):
     fields = ('id','kind','variety','color')
     list_fields = ('id','variety')
 
+    def read(self, request, *args, **kwargs):
+        if "special" in kwargs:
+            insts = ListFieldsModel.objects.all()
+            ret = []
+            for inst in insts:
+                # make some business logic that could not be returned in QuerySet
+                inst.variety = inst.kind == 'fruit' and 'iphone' \
+                               or inst.kind == 'animal' and 'steve' \
+                               or inst.kind == 'vegetable' and 'bill' \
+                               or 'linus'
+                ret.append(inst)
+            return ret
+        else:
+            return super(ListFieldsHandler, self).read(request, *args, **kwargs)
+
 class Issue58Handler(BaseHandler):
     model = Issue58Model
 

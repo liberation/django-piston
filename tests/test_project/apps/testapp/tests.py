@@ -425,6 +425,25 @@ class ListFieldsTest(MainTests):
         self.assertEquals(resp.status_code, 200)
         self.assertEquals(resp.content, expect)
         
+    def test_list_not_queryset(self):
+        expect = '''[
+    {
+        "id": 1, 
+        "variety": "iphone"
+    }, 
+    {
+        "id": 2, 
+        "variety": "bill"
+    }, 
+    {
+        "id": 3, 
+        "variety": "steve"
+    }
+]'''
+        resp = self.client.get('/api/list_fields/special/')
+        self.assertEquals(resp.status_code, 200)
+        self.assertEquals(resp.content, expect)
+        
 class Issue58ModelTests(MainTests):
     """
     This testcase addresses #58 in django-piston where if a model

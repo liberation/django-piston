@@ -53,6 +53,7 @@ urlpatterns = patterns('',
     url(r'^oauth/access_token$', 'piston.authentication.oauth_access_token'),
 
     url(r'^list_fields$', list_fields),
+    url(r'^list_fields/special/$', list_fields, {'special': True}),
     url(r'^list_fields/(?P<id>.+)$', list_fields),
 
     url(r'^overload_plus_method/(?P<id>.+)$', overload_plus_method),
