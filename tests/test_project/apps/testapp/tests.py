@@ -17,7 +17,7 @@ import urllib, base64
 
 from test_project.apps.testapp.models import TestModel, ExpressiveTestModel, \
                         Comment, InheritedModel, Issue58Model, ListFieldsModel, \
-                        OverloadPlusMethod1, OverloadPlusMethod2
+                        OverloadPlusMethod1, OverloadPlusMethod2, RelatedFieldsModel
 from test_project.apps.testapp import signals
 
 class MainTests(TestCase):
@@ -499,5 +499,28 @@ class OverloadPlusMethodTest(MainTests):
     "title": "Title2"
 }"""
         resp = self.client.get('/api/overload_plus_method/1')
+        self.assertEquals(resp.status_code, 200)
+        self.assertEquals(resp.content, expected)
+
+class RelatedFieldsTest(MainTests):
+    def init_delegate(self):
+        item1 = RelatedFieldsModel(title='Title1')
+        item1.save()
+        item2 = RelatedFieldsModel(title='Title2')
+        item2.save()
+        item1.related_to.add(item2)
+        item2.related_to.add(item1)
+
+    def test_1(self):
+        expected = """{
+    "id": 1, 
+    "related_to": [
+        {
+            "title": "Title2"
+        }
+    ], 
+    "title": "Title1"
+}"""
+        resp = self.client.get('/api/related_fields/1')
         self.assertEquals(resp.status_code, 200)
         self.assertEquals(resp.content, expected)

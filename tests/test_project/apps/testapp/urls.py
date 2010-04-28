@@ -4,7 +4,7 @@ from piston.authentication import HttpBasicAuthentication, HttpBasicSimple
 
 from test_project.apps.testapp.handlers import EntryHandler, ExpressiveHandler,\
          AbstractHandler, EchoHandler, PlainOldObjectHandler, Issue58Handler, \
-         ListFieldsHandler, OverloadPlusMethodHandler
+         ListFieldsHandler, OverloadPlusMethodHandler, RelatedFieldsModelHandler
 
 auth = HttpBasicAuthentication(realm='TestApplication')
 
@@ -16,6 +16,7 @@ popo = Resource(handler=PlainOldObjectHandler)
 list_fields = Resource(handler=ListFieldsHandler)
 issue58 = Resource(handler=Issue58Handler)
 overload_plus_method = Resource(handler=OverloadPlusMethodHandler)
+related_fields = Resource(handler=RelatedFieldsModelHandler)
 
 AUTHENTICATORS = [auth,]
 SIMPLE_USERS = (('admin', 'secr3t'),
@@ -57,6 +58,7 @@ urlpatterns = patterns('',
     url(r'^list_fields/(?P<id>.+)$', list_fields),
 
     url(r'^overload_plus_method/(?P<id>.+)$', overload_plus_method),
+    url(r'^related_fields/(?P<id>.+)$', related_fields),
     
     url(r'^popo$', popo),
 )

@@ -226,7 +226,7 @@ class Resource(object):
             # when _is_string is False _container is the raw data
             result = result._container
             
-        srl = emitter(result, typemapper, handler, fields, anonymous)
+        srl = emitter(result, typemapper, handler, anonymous)
 
         try:
             """

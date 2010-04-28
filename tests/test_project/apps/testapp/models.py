@@ -45,3 +45,7 @@ class OverloadPlusMethod1(models.Model):
 class OverloadPlusMethod2(models.Model):
     title = models.CharField(max_length=15)
     related_to = models.ManyToManyField(OverloadPlusMethod1)
+
+class RelatedFieldsModel(models.Model):
+    title = models.CharField(max_length=15)
+    related_to = models.ManyToManyField("self")

@@ -63,11 +63,12 @@ class Emitter(object):
                             'delete', 'model', 'anonymous',
                             'allowed_methods', 'fields', 'exclude' ])
 
-    def __init__(self, payload, typemapper, handler, fields=(), anonymous=True):
+    def __init__(self, payload, typemapper, default_handler, anonymous=True):
         self.typemapper = typemapper
         self.data = payload
-        self.handler = handler
-        self.fields = fields
+        self.default_handler = default_handler
+        self.handler = self.default_handler # Backward compatibility
+        self.default_fields = self.default_handler.fields
         self.anonymous = anonymous
         
         if isinstance(self.data, Exception):
@@ -93,6 +94,23 @@ class Emitter(object):
                 ret[field] = t
 
         return ret
+
+    def get_relevant_fields(self, data, handler):
+        """
+        We need to use the right fields for each type we deal with.
+        Also, we don't use the same list_fields if main instance or sub ones.
+        If we deal with main handler instance, we use fields or list_fields.
+        If we deal with sub ones, we use fields or related_fields.
+        """
+        # It's the main instance
+        if data == self.data:
+            if isinstance(data, (QuerySet, list)):
+                fields = handler.get_list_fields()
+            else:
+                fields = handler.fields
+        else:
+            fields = handler.get_related_fields()
+        return set(fields)             
     
     def construct(self):
         """
@@ -166,11 +184,12 @@ class Emitter(object):
 
                 if not fields:
                     """
-                    Fields was not specified, try to find teh correct
+                    Fields was not specified, try to find the correct
                     version in the typemapper we were sent.
                     """
                     mapped = self.in_typemapper(type(data), self.anonymous)
-                    get_fields = set(mapped.fields)
+#                    get_fields = set(mapped.fields)
+                    get_fields = self.get_relevant_fields(data, mapped)
                     exclude_fields = set(mapped.exclude).difference(get_fields)
 
                     if 'absolute_uri' in get_fields:
@@ -301,7 +320,8 @@ class Emitter(object):
             return dict([ (k, _any(v)) for k, v in data.iteritems() ])
             
         # Kickstart the seralizin'.
-        return _any(self.data, self.fields)
+        main_fields = self.get_relevant_fields(self.data, self.default_handler)
+        return _any(self.data, main_fields)
     
     def in_typemapper(self, model, anonymous):
         for klass, (km, is_anon) in self.typemapper.iteritems():

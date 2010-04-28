@@ -5,7 +5,7 @@ from piston.utils import rc, validate
 
 from models import TestModel, ExpressiveTestModel, Comment, InheritedModel, \
                 PlainOldObject, Issue58Model, ListFieldsModel, \
-                OverloadPlusMethod2
+                OverloadPlusMethod2, RelatedFieldsModel
 from forms import EchoForm
 from test_project.apps.testapp import signals
 
@@ -120,3 +120,9 @@ class OverloadPlusMethodHandler(BaseHandler):
     @classmethod
     def a_name(cls, item):
         return item.related_to.all()
+
+class RelatedFieldsModelHandler(BaseHandler):
+    model = RelatedFieldsModel
+    fields = ('id','title','related_to')
+    related_fields = ('title',)
+    
