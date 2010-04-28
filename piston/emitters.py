@@ -111,7 +111,7 @@ class Emitter(object):
             if isinstance(thing, QuerySet):
                 ret = _qs(thing, fields=fields)
             elif isinstance(thing, (tuple, list)):
-                ret = _list(thing, fields)
+                ret = _list(thing, fields=fields)
             elif isinstance(thing, dict):
                 ret = _dict(thing)
             elif isinstance(thing, decimal.Decimal):
@@ -288,7 +288,7 @@ class Emitter(object):
             """
             return [ _any(v, fields) for v in data ]
                 
-        def _list(data, fields):
+        def _list(data, fields=None):
             """
             Lists.
             """
