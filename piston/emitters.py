@@ -63,15 +63,18 @@ class Emitter(object):
                             'delete', 'model', 'anonymous',
                             'allowed_methods', 'fields', 'exclude' ])
 
-    def __init__(self, payload, typemapper, default_handler, anonymous=True):
+    def __init__(self, payload, typemapper, top_level_handler, anonymous=True):
         self.typemapper = typemapper
-        self.data = payload
-        self.default_handler = default_handler
-        self.handler = self.default_handler # Backward compatibility
-        self.default_fields = self.default_handler.fields
+        self.top_level_data = payload
+        self.top_level_handler = top_level_handler
+        self.top_level_fields = self.top_level_handler.fields
         self.anonymous = anonymous
+        # Backward compatibility
+        self.handler = self.top_level_handler
+        self.data = self.top_level_data
+        self.fields = self.top_level_fields
         
-        if isinstance(self.data, Exception):
+        if isinstance(self.top_level_data, Exception):
             raise
     
     def method_fields(self, handler, fields):
@@ -102,8 +105,8 @@ class Emitter(object):
         If we deal with main handler instance, we use fields or list_fields.
         If we deal with sub ones, we use fields or related_fields.
         """
-        # It's the main instance
-        if data == self.data:
+        # If we are top level
+        if data == self.top_level_data:
             if isinstance(data, (QuerySet, list)):
                 fields = handler.get_list_fields()
             else:
@@ -264,7 +267,7 @@ class Emitter(object):
                             else:
                                 ret[maybe_field] = _any(maybe)
                         else:
-                            handler_f = getattr(handler or self.handler, maybe_field, None)
+                            handler_f = getattr(handler or self.top_level_handler, maybe_field, None)
 
                             if handler_f:
                                 ret[maybe_field] = _any(handler_f(data))
@@ -320,8 +323,8 @@ class Emitter(object):
             return dict([ (k, _any(v)) for k, v in data.iteritems() ])
             
         # Kickstart the seralizin'.
-        main_fields = self.get_relevant_fields(self.data, self.default_handler)
-        return _any(self.data, main_fields)
+        main_fields = self.get_relevant_fields(self.top_level_data, self.top_level_handler)
+        return _any(self.top_level_data, main_fields)
     
     def in_typemapper(self, model, anonymous):
         for klass, (km, is_anon) in self.typemapper.iteritems():
@@ -460,12 +463,12 @@ class DjangoEmitter(Emitter):
     Emitter for the Django serialized format.
     """
     def render(self, request, format='xml'):
-        if isinstance(self.data, HttpResponse):
-            return self.data
-        elif isinstance(self.data, (int, str)):
-            response = self.data
+        if isinstance(self.top_level_data, HttpResponse):
+            return self.top_level_data
+        elif isinstance(self.top_level_data, (int, str)):
+            response = self.top_level_data
         else:
-            response = serializers.serialize(format, self.data, indent=True)
+            response = serializers.serialize(format, self.top_level_data, indent=True)
 
         return response
         
