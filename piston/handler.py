@@ -60,6 +60,22 @@ class BaseHandler(object):
 
     def queryset(self, request):
         return self.model.objects.all()
+    
+    @classmethod
+    def get_list_fields(self):
+        if hasattr(self, 'list_fields'):
+            list_fields = self.list_fields            
+        else:
+            list_fields = self.fields
+        return list_fields
+            
+    @classmethod
+    def get_related_fields(self):
+        if hasattr(self, 'related_fields'):
+            related_fields = self.related_fields            
+        else:
+            related_fields = self.get_list_fields()            
+        return related_fields
 
     def value_from_tuple(tu, name):
         for int_, n in tu:

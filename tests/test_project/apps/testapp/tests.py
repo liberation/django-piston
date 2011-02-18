@@ -15,7 +15,9 @@ except ImportError:
 
 import urllib, base64
 
-from test_project.apps.testapp.models import TestModel, ExpressiveTestModel, Comment, InheritedModel, Issue58Model, ListFieldsModel
+from test_project.apps.testapp.models import TestModel, ExpressiveTestModel, \
+                        Comment, InheritedModel, Issue58Model, ListFieldsModel, \
+                        OverloadPlusMethod1, OverloadPlusMethod2, RelatedFieldsModel
 from test_project.apps.testapp import signals
 
 class MainTests(TestCase):
@@ -423,6 +425,25 @@ class ListFieldsTest(MainTests):
         self.assertEquals(resp.status_code, 200)
         self.assertEquals(resp.content, expect)
         
+    def test_list_not_queryset(self):
+        expect = '''[
+    {
+        "id": 1, 
+        "variety": "iphone"
+    }, 
+    {
+        "id": 2, 
+        "variety": "bill"
+    }, 
+    {
+        "id": 3, 
+        "variety": "steve"
+    }
+]'''
+        resp = self.client.get('/api/list_fields/special/')
+        self.assertEquals(resp.status_code, 200)
+        self.assertEquals(resp.content, expect)
+        
 class ErrorHandlingTests(MainTests):
     """Test proper handling of errors by Resource"""
 
@@ -436,7 +457,6 @@ class ErrorHandlingTests(MainTests):
         resp = self.client.get('/api/echo', REQUEST_METHOD='HEAD')
         self.assertEquals(resp.status_code, 404)
         self.assertEquals(resp.content, '')
-
 
 class Issue58ModelTests(MainTests):
     """
@@ -473,3 +493,48 @@ class Issue58ModelTests(MainTests):
         resp = self.client.post('/api/issue58.json', outgoing, content_type='application/json',
                                 HTTP_AUTHORIZATION=self.auth_string)
         self.assertEquals(resp.status_code, 201)
+
+class OverloadPlusMethodTest(MainTests):
+    def init_delegate(self):
+        item1 = OverloadPlusMethod2(title='Title2')
+        item1.save()
+        item2 = OverloadPlusMethod1(title='Title1')
+        item2.save()
+        item1.related_to.add(item2)
+
+    def test_1(self):
+        expected = """{
+    "a_name": [
+        {
+            "title": "Title1"
+        }
+    ], 
+    "id": 1, 
+    "title": "Title2"
+}"""
+        resp = self.client.get('/api/overload_plus_method/1')
+        self.assertEquals(resp.status_code, 200)
+        self.assertEquals(resp.content, expected)
+
+class RelatedFieldsTest(MainTests):
+    def init_delegate(self):
+        item1 = RelatedFieldsModel(title='Title1')
+        item1.save()
+        item2 = RelatedFieldsModel(title='Title2')
+        item2.save()
+        item1.related_to.add(item2)
+        item2.related_to.add(item1)
+
+    def test_1(self):
+        expected = """{
+    "id": 1, 
+    "related_to": [
+        {
+            "title": "Title2"
+        }
+    ], 
+    "title": "Title1"
+}"""
+        resp = self.client.get('/api/related_fields/1')
+        self.assertEquals(resp.status_code, 200)
+        self.assertEquals(resp.content, expected)

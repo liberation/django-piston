@@ -38,3 +38,14 @@ class ListFieldsModel(models.Model):
 class Issue58Model(models.Model):
     read = models.BooleanField(default=False)
     model = models.CharField(max_length=1, blank=True, null=True)
+
+class OverloadPlusMethod1(models.Model):
+    title = models.CharField(max_length=15)
+
+class OverloadPlusMethod2(models.Model):
+    title = models.CharField(max_length=15)
+    related_to = models.ManyToManyField(OverloadPlusMethod1)
+
+class RelatedFieldsModel(models.Model):
+    title = models.CharField(max_length=15)
+    related_to = models.ManyToManyField("self")

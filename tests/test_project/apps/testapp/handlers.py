@@ -3,7 +3,9 @@ from django.core.paginator import Paginator
 from piston.handler import BaseHandler
 from piston.utils import rc, validate
 
-from models import TestModel, ExpressiveTestModel, Comment, InheritedModel, PlainOldObject, Issue58Model, ListFieldsModel
+from models import TestModel, ExpressiveTestModel, Comment, InheritedModel, \
+                PlainOldObject, Issue58Model, ListFieldsModel, \
+                OverloadPlusMethod2, RelatedFieldsModel
 from forms import EchoForm
 from test_project.apps.testapp import signals
 
@@ -81,6 +83,21 @@ class ListFieldsHandler(BaseHandler):
     fields = ('id','kind','variety','color')
     list_fields = ('id','variety')
 
+    def read(self, request, *args, **kwargs):
+        if "special" in kwargs:
+            insts = ListFieldsModel.objects.all()
+            ret = []
+            for inst in insts:
+                # make some business logic that could not be returned in QuerySet
+                inst.variety = inst.kind == 'fruit' and 'iphone' \
+                               or inst.kind == 'animal' and 'steve' \
+                               or inst.kind == 'vegetable' and 'bill' \
+                               or 'linus'
+                ret.append(inst)
+            return ret
+        else:
+            return super(ListFieldsHandler, self).read(request, *args, **kwargs)
+
 class Issue58Handler(BaseHandler):
     model = Issue58Model
 
@@ -95,3 +112,17 @@ class Issue58Handler(BaseHandler):
             return rc.CREATED
         else:
             super(Issue58Model, self).create(request)
+
+class OverloadPlusMethodHandler(BaseHandler):
+    model = OverloadPlusMethod2
+    fields = ('id','title',('a_name',('title',)))
+    
+    @classmethod
+    def a_name(cls, item):
+        return item.related_to.all()
+
+class RelatedFieldsModelHandler(BaseHandler):
+    model = RelatedFieldsModel
+    fields = ('id','title','related_to')
+    related_fields = ('title',)
+    
