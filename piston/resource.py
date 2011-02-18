@@ -250,13 +250,10 @@ class Resource(object):
         Override this method to add handling of errors customized for your 
         needs
         """
-        print "begin error_handler"
         if isinstance(e, FormValidationError):
-            print "FormValidationError"
             return self.form_validation_response(e)
 
         elif isinstance(e, TypeError):
-            print "TypeError"
             result = rc.BAD_REQUEST
             hm = HandlerMethod(meth)
             sig = hm.signature
@@ -275,11 +272,9 @@ class Resource(object):
             return result
         elif isinstance(e, Http404):
             return rc.NOT_FOUND
-            print "Http404"
     
         elif isinstance(e, HttpStatusCode):
             return e.response
-            print "HttpStatusCode"
     
         else: 
             """
@@ -296,7 +291,6 @@ class Resource(object):
             If `PISTON_DISPLAY_ERRORS` is not enabled, the caller will
             receive a basic "500 Internal Server Error" message.
             """
-            print "handle error"
             exc_type, exc_value, tb = sys.exc_info()
             rep = ExceptionReporter(request, exc_type, exc_value, tb.tb_next)
             if self.email_errors:
