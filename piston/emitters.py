@@ -185,10 +185,11 @@ class Emitter(object):
             if handler or fields:
                 v = lambda f: getattr(data, f.attname)
 
-                if handler:
-                    fields = getattr(handler, 'fields')    
-                
-                if not fields or hasattr(handler, 'fields'):
+#                if handler:
+#                    fields = getattr(handler, 'fields')    
+#                
+#                if not fields or hasattr(handler, 'fields'):
+                if not fields:
                     """
                     Fields was not specified, try to find the correct
                     version in the typemapper we were sent.
@@ -219,9 +220,9 @@ class Emitter(object):
                                     
                 else:
                     get_fields = set(fields)
-
+                
                 met_fields = self.method_fields(handler, get_fields)
-
+                
                 for f in data._meta.local_fields + data._meta.virtual_fields:
                     if f.serialize and not any([ p in met_fields for p in [ f.attname, f.name ]]):
                         if not f.rel:
