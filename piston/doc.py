@@ -6,6 +6,7 @@ from piston.handler import handler_tracker
 from django.core.urlresolvers import get_resolver, get_callable, get_script_prefix
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.db.models.fields.related import RelatedField
 
 def generate_doc(handler_cls):
     """
@@ -17,6 +18,53 @@ def generate_doc(handler_cls):
         raise ValueError("Give me handler, not %s" % type(handler_cls))
         
     return HandlerDocumentation(handler_cls)
+    
+class HandlerField(object):
+    """
+    Fields introspection.
+    """
+    def __init__(self, handler, field):
+        self.handler = handler
+        self.name = self._guess_name(field)
+    
+    def _guess_name(self, field):
+        if isinstance(field, (list, tuple)):
+            return field[0]
+        elif isinstance(field, str):
+            return field
+        else:
+            raise ValueError("Wrong field type.")
+    
+    @property
+    def doc(self):
+        """
+        Try to find the must convenient doc.
+        """
+        #We first check if there is a local method
+        if hasattr(self.handler, self.name):
+            attr = getattr(self.handler, self.name)
+            if callable(attr):
+                return attr.__doc__ or ""
+        if hasattr(self.handler, "model"):
+            try:
+                attr, model, _, _ = self.handler.model._meta.get_field_by_name(self.name)
+                print attr
+                #We now check if it will be processed by another handler
+                #If it's many to many, or related, or FK
+                if isinstance(attr, RelatedField):
+                    print "isinstance"
+                    return "See related fields for resource %s" % self.name
+                #We now try to get the help_text if its a model field
+                final = unicode(attr.help_text)
+            except:
+                final = ""
+            return final
+            #Is the field a method of the handler's model?
+            if hasattr(self.handler.model, self.name):
+                attr = getattr(self.handler.model, self.name)
+                if callable(attr):
+                    return attr.__doc__ or ""
+        return ""
     
 class HandlerMethod(object):
     def __init__(self, method, stale=False):
@@ -172,6 +220,15 @@ class HandlerDocumentation(object):
     
     def __repr__(self):
         return u'<Documentation for "%s">' % self.name
+    
+    def get_fields(self):
+        return [HandlerField(self.handler, name) for name in self.handler.fields]
+    
+    def get_list_fields(self):
+        return [HandlerField(self.handler, name) for name in self.handler.get_list_fields()]
+    
+    def get_related_fields(self):
+        return [HandlerField(self.handler, name) for name in self.handler.get_related_fields()]
 
 def documentation_view(request):
     """

@@ -247,11 +247,12 @@ class Emitter(object):
                         inst = getattr(data, model, None)
 
                         if inst:
-                            if hasattr(inst, 'all'):
+                            if hasattr(inst, 'all'):#seems ugly :/
                                 ret[model] = _related(inst, fields)
                             elif callable(inst):
                                 if len(inspect.getargspec(inst)[0]) == 1:
                                     ret[model] = _any(inst(), fields)
+                                #else?
                             else:
                                 ret[model] = _model(inst, fields)
                         # Maybe there is a method for this field
