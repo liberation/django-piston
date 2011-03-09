@@ -247,7 +247,7 @@ class Emitter(object):
                         inst = getattr(data, model, None)
 
                         if inst:
-                            if hasattr(inst, 'all'):#seems ugly :/
+                            if hasattr(inst, 'all'):
                                 ret[model] = _related(inst, fields)
                             elif callable(inst):
                                 if len(inspect.getargspec(inst)[0]) == 1:
