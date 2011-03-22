@@ -53,14 +53,14 @@ class HandlerField(object):
                 # We now check if it will be processed by another handler
                 # If it's many to many, or related, or FK
                 if isinstance(attr, RelatedField):
-                    return "See resource %s 'related fields' for details" % \
+                    return u"See resource %s 'related fields' for details" % \
                                               attr.related.parent_model.__name__
                 # We now try to get the help_text if its a model field
                 txt = unicode(attr.help_text)
                 # It the field is a ChoiceField, we add the possible values.
                 if attr.choices: # choices is a list for every fields
                     if len(txt) > 0: txt += " - "
-                    txt += "Possible values are %s" % attr.choices
+                    txt += u"Possible values are %s" % unicode(attr.choices)
                 return txt
             except FieldDoesNotExist:
                 pass
