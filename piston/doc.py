@@ -56,7 +56,12 @@ class HandlerField(object):
                     return "See resource %s 'related fields' for details" % \
                                               attr.related.parent_model.__name__
                 # We now try to get the help_text if its a model field
-                return unicode(attr.help_text)
+                txt = unicode(attr.help_text)
+                # It the field is a ChoiceField, we add the possible values.
+                if attr.choices: # choices is a list for every fields
+                    if len(txt) > 0: txt += " - "
+                    txt += "Possible values are %s" % attr.choices
+                return txt
             except FieldDoesNotExist:
                 pass
             # Is the field a method of the handler's model?
